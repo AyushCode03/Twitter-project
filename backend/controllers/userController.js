@@ -4,37 +4,62 @@ import User from "../models/userModel.js";
 import Notification from "../models/notificationModel.js";
 
 export const userProfile = async (req, res) => {
+  // Destructure username from request parameters
   const { username } = req.params;
 
+  // Ensure username is provided
+  if (!username) {
+    return res.status(400).json({ error: "Bad request: Username is required" });
+  }
+
   try {
+    // Find the user by username and exclude the password field
     const user = await User.findOne({ username }).select("-password");
+
+    // If user not found, respond with 404 Not Found
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ error: "User not found" });
     }
 
+    // Respond with the user object
     res.status(200).json(user);
   } catch (error) {
-    console.error("Error in getUserProfile:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    // Log any unexpected errors with detailed information
+    console.error("Error in userProfile:", error);
+
+    // Respond with a 500 Internal Server Error
+    res.status(500).json({ error: error.message });
   }
 };
 
 export const suggestedUsers = async (req, res) => {
   try {
     const userId = req.user._id;
-    const usersFollowedByMe = await User.findById(userId).select("following");
 
+    // Fetch the list of users followed by the current user
+    const currentUser = await User.findById(userId).select("following");
+
+    if (!currentUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Fetch random users excluding the current user and already followed users
     const users = await User.aggregate([
       {
         $match: {
-          _id: { $ne: userId },
+          _id: { $ne: userId, $nin: currentUser.following },
         },
       },
       { $sample: { size: 10 } },
+      {
+        $project: {
+          password: 0,
+        },
+      },
     ]);
 
     const filteredUsers = users.filter(
-      (user) => !usersFollowedByMe.following.includes(user._id)
+      (user) => !currentUser.following.includes(user._id)
     );
     const suggestedUsers = filteredUsers.slice(0, 4);
 
@@ -42,10 +67,14 @@ export const suggestedUsers = async (req, res) => {
       user.password = null;
     });
 
+    // Respond with the suggested users
     res.status(200).json(suggestedUsers);
   } catch (error) {
-    console.error("Error in suggestedUsers:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    // Log any unexpected errors
+    console.error("Error in suggestedUsers:", error);
+
+    // Respond with a 500 Internal Server Error
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -91,32 +120,37 @@ export const followingUser = async (req, res) => {
     }
   } catch (error) {
     console.error("Error in followingUser:", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: error.message });
   }
 };
 
+// Function to update the user's profile
 export const updateUserProfile = async (req, res) => {
-  const { name, email, username, currentPassword, newPassword, bio, link } =
+  const { fullName, email, username, currentPassword, newPassword, bio, link } =
     req.body;
   let { profileImg, coverImg } = req.body;
 
   const userId = req.user._id;
 
   try {
+    // Find the user by ID
     let user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Validate password change requirements
     if (
-      (newPassword && !currentPassword) ||
-      (currentPassword && !newPassword)
+      (currentPassword && !newPassword) ||
+      (newPassword && !currentPassword)
     ) {
       return res.status(400).json({
-        error: "Please provide both current password and new password",
+        error:
+          "Both current and new passwords must be provided for a password change",
       });
     }
 
+    // Handle password update
     if (currentPassword && newPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
@@ -125,36 +159,34 @@ export const updateUserProfile = async (req, res) => {
       if (newPassword.length < 4) {
         return res
           .status(400)
-          .json({ error: "Password must be at least 4 characters long" });
+          .json({ error: "New password must be at least 4 characters long" });
       }
-
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(newPassword, salt);
     }
 
+    // Handle profile image update
     if (profileImg) {
       if (user.profileImg) {
-        await cloudinary.uploader.destroy(
-          user.profileImg.split("/").pop().split(".")[0]
-        );
+        const publicId = user.profileImg.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(publicId);
       }
-
-      const uploadedResponse = await cloudinary.uploader.upload(profileImg);
-      profileImg = uploadedResponse.secure_url;
+      const uploadResponse = await cloudinary.uploader.upload(profileImg);
+      profileImg = uploadResponse.secure_url;
     }
 
+    // Handle cover image update
     if (coverImg) {
       if (user.coverImg) {
-        await cloudinary.uploader.destroy(
-          user.coverImg.split("/").pop().split(".")[0]
-        );
+        const publicId = user.coverImg.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(publicId);
       }
-
-      const uploadedResponse = await cloudinary.uploader.upload(coverImg);
-      coverImg = uploadedResponse.secure_url;
+      const uploadResponse = await cloudinary.uploader.upload(coverImg);
+      coverImg = uploadResponse.secure_url;
     }
 
-    user.name = name || user.name;
+    // Update user fields
+    user.fullName = fullName || user.fullName;
     user.email = email || user.email;
     user.username = username || user.username;
     user.bio = bio || user.bio;
@@ -162,10 +194,13 @@ export const updateUserProfile = async (req, res) => {
     user.profileImg = profileImg || user.profileImg;
     user.coverImg = coverImg || user.coverImg;
 
+    // Save the updated user
     user = await user.save();
 
-    user.password = null;
+    // Remove password from the response
+    user.password = undefined;
 
+    // Respond with the updated user
     res.status(200).json(user);
   } catch (error) {
     console.error("Error in updateUserProfile:", error.message);
