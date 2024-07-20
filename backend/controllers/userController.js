@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
-import { v2 as cloudinary } from "cloudinary";
 import User from "../models/userModel.js";
 import Notification from "../models/notificationModel.js";
+import { v2 as cloudinary } from "cloudinary";
 
 export const userProfile = async (req, res) => {
   // Destructure username from request parameters
