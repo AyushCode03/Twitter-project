@@ -181,7 +181,7 @@ export const getAllPosts = async (req, res) => {
     }
 
     // Return posts with populated user and comment details
-    res.status(200).json({ message: "Posts retrieved successfully", posts });
+    res.status(200).json(posts);
   } catch (error) {
     console.error("Error in getAllPosts controller:", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -211,9 +211,7 @@ export const getLikedPosts = async (req, res) => {
       });
 
     // Return liked posts with populated user and comment details
-    res
-      .status(200)
-      .json({ message: "Liked posts retrieved successfully", likedPosts });
+    res.status(200).json(likedPosts);
   } catch (error) {
     console.error("Error in getLikedPosts controller:", error.message);
     res.status(500).json({ error: "Internal server error" });

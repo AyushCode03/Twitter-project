@@ -42,11 +42,19 @@ const postSchema = new mongoose.Schema(
         },
       },
     ],
-    // Array of user IDs who have retweeted the tweet
     retweets: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Reference to the User model for retweets
+        // The text content of the retweet
+        text: {
+          type: String,
+          required: true, // Each comment must have text
+        },
+        // Reference to the User model to associate a comment with a specific user
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true, // Each comment must be associated with a user
+        },
       },
     ],
   },
