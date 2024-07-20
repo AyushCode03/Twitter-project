@@ -6,7 +6,7 @@ export const POSTS = [
     user: {
       username: "johndoe",
       profileImg: "/avatars/boy1.png",
-      name: "John Doe",
+      fullName: "John Doe",
     },
     comments: [
       {
@@ -15,7 +15,7 @@ export const POSTS = [
         user: {
           username: "janedoe",
           profileImg: "/avatars/girl1.png",
-          name: "Jane Doe",
+          fullName: "Jane Doe",
         },
       },
     ],
@@ -27,7 +27,7 @@ export const POSTS = [
     user: {
       username: "johndoe",
       profileImg: "/avatars/boy2.png",
-      name: "John Doe",
+      fullName: "John Doe",
     },
     comments: [
       {
@@ -36,7 +36,7 @@ export const POSTS = [
         user: {
           username: "janedoe",
           profileImg: "/avatars/girl2.png",
-          name: "Jane Doe",
+          fullName: "Jane Doe",
         },
       },
     ],
@@ -49,7 +49,7 @@ export const POSTS = [
     user: {
       username: "johndoe",
       profileImg: "/avatars/boy3.png",
-      name: "John Doe",
+      fullName: "John Doe",
     },
     comments: [],
     likes: [
@@ -68,7 +68,7 @@ export const POSTS = [
     user: {
       username: "johndoe",
       profileImg: "/avatars/boy3.png",
-      name: "John Doe",
+      fullName: "John Doe",
     },
     comments: [
       {
@@ -77,7 +77,7 @@ export const POSTS = [
         user: {
           username: "janedoe",
           profileImg: "/avatars/girl3.png",
-          name: "Jane Doe",
+          fullName: "Jane Doe",
         },
       },
     ],
@@ -98,25 +98,25 @@ export const POSTS = [
 export const USERS_FOR_RIGHT_PANEL = [
   {
     _id: "1",
-    name: "John Doe",
+    fullName: "John Doe",
     username: "johndoe",
     profileImg: "/avatars/boy2.png",
   },
   {
     _id: "2",
-    name: "Jane Doe",
+    fullName: "Jane Doe",
     username: "janedoe",
     profileImg: "/avatars/girl1.png",
   },
   {
     _id: "3",
-    name: "Bob Doe",
+    fullName: "Bob Doe",
     username: "bobdoe",
     profileImg: "/avatars/boy3.png",
   },
   {
     _id: "4",
-    name: "Daisy Doe",
+    fullName: "Daisy Doe",
     username: "daisydoe",
     profileImg: "/avatars/girl2.png",
   },
